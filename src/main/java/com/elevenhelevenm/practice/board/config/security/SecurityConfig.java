@@ -1,42 +1,31 @@
 package com.elevenhelevenm.practice.board.config.security;
 
-import com.elevenhelevenm.practice.board.config.jwt.JwtAuthenticationFilter;
-import com.elevenhelevenm.practice.board.config.jwt.JwtAuthenticationProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .httpBasic().disable()
-                .cors().and()
                 .csrf().disable()
-                .formLogin().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationProvider), UsernamePasswordAuthenticationFilter.class);
+                .headers().frameOptions().disable()
+                    .and()
+                .authorizeRequests()
+                    .antMatchers("/", "/css/**", "/js/**", "/images/**", "/h2-console/**", "/join/**").permitAll() // 해당 URL은 인증 필요 X
+                    .antMatchers("/api/**").hasRole("USER") // /api/** 는 USER 권한만 접근 가능
+                    .anyRequest().authenticated(); //이외 모든 요청은 인증을 거친다.
+
+        http
+                .formLogin() //폼 로그인 기반
+                    .and()
+                .httpBasic(); //HTTP 로그인 기반
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
 }

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Entity
 @Getter
 @NoArgsConstructor
-public class Member implements UserDetails {
+public class Member {
 
     @Id @GeneratedValue
     private Long id;
@@ -27,45 +27,17 @@ public class Member implements UserDetails {
 
     private String name;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    private List<String> roles = new ArrayList<>();
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return this.roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+    private String role;
 
     @Builder
     public Member(String email, String password, String name) {
         this.email = email;
         this.password = password;
         this.name = name;
+        this.role = "ROLE_USER";
+    }
+
+    public void encodePassword(String password) {
+        this.password = password;
     }
 }
